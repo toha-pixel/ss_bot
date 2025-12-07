@@ -308,6 +308,7 @@ class SecretSantaBot:
             minute=0,
             timezone='Europe/Moscow'
         )
+        self.scheduler.start()  # стартуем сразу
         logger.info("Планировщик настроен на ежедневную проверку в 10:00")
 
     def setup_handlers(self):
@@ -354,15 +355,6 @@ class SecretSantaBot:
             "✏ Что вы хотите изменить?",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
-
-    async def run(self):
-        """Асинхронный запуск бота."""
-        self.setup_scheduler()
-        self.scheduler.start()
-
-        await self.application.initialize()
-        await self.application.start()
-        await self.application.run_polling()
 
     async def edit_field(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
@@ -423,8 +415,8 @@ def main():
 
     bot = SecretSantaBot(TOKEN)
 
-    asyncio.run(bot.run())
-
+    # Запуск бота (не через asyncio.run)
+    bot.application.run_polling()
 
 if __name__ == '__main__':
     main()
