@@ -200,12 +200,18 @@ class SecretSantaBot:
         await update.message.reply_text(stats_text)
 
     def perform_draw(self):
-        """Проводит жеребьёвку (без повторов)."""
-        user_ids = list(self.users_data.keys())
+        """Проводит жеребьёвку (без повторов), только для полностью заполненных анкет."""
+
+        # Фильтруем участников с полной анкетой
+        user_ids = [
+            user_id
+            for user_id, data in self.users_data.items()
+            if all(data.get(field) for field in ('name', 'course', 'group', 'wishes'))
+        ]
 
         if len(user_ids) < 2:
-            logger.warning("Недостаточно участников для жеребьёвки")
-            return
+            logger.warning("Недостаточно участников для жеребьёвки (только полностью зарегистрированные)")
+            return {}
 
         # Перемешиваем список
         shuffle(user_ids)
@@ -219,7 +225,7 @@ class SecretSantaBot:
 
         self.assignments = assignments
         self.save_data(ASSIGNMENTS_FILE, assignments)
-        logger.info(f"Проведена жеребьёвка для {len(user_ids)} участника(ов)")
+        logger.info(f"Проведена жеребьёвка для {len(user_ids)} участников с полной анкетой")
 
         return assignments
 
