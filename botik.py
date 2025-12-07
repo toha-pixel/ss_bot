@@ -278,6 +278,44 @@ class SecretSantaBot:
             f"Для рассылки результатов используйте /send_results"
         )
 
+    async def clear_all(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        ADMINS = ['851720410']  # твой ID
+        user_id = str(update.effective_user.id)
+        if user_id not in ADMINS:
+            await update.message.reply_text("Только для администраторов!")
+            return
+
+        self.users_data = {}
+        self.assignments = {}
+        self.save_data(DATA_FILE, self.users_data)
+        self.save_data(ASSIGNMENTS_FILE, self.assignments)
+
+        await update.message.reply_text("✅ Список участников и жеребьёвка очищены!")
+
+    async def delete_my_profile(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Позволяет пользователю удалить свою анкету."""
+
+        user_id = str(update.effective_user.id)
+
+        if user_id not in self.users_data:
+            await update.message.reply_text("Вы ещё не зарегистрированы, нечего удалять.")
+            return
+
+        # Удаляем данные пользователя
+        del self.users_data[user_id]
+        self.save_data(DATA_FILE, self.users_data)
+
+        # Удаляем пользователя из жеребьёвки (если уже проводилась)
+        if user_id in self.assignments:
+            del self.assignments[user_id]
+
+        # Удаляем его как получателя, если кто-то ему дарит подарок
+        self.assignments = {giver: receiver for giver, receiver in self.assignments.items() if receiver != user_id}
+        self.save_data(ASSIGNMENTS_FILE, self.assignments)
+
+        await update.message.reply_text("✅ Ваша анкета успешно удалена.")
+
+
     async def send_results(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Ручная рассылка результатов (только для админа)."""
         user_id = str(update.effective_user.id)
@@ -336,6 +374,8 @@ class SecretSantaBot:
         self.application.add_handler(CommandHandler('stats', self.stats))
         self.application.add_handler(CommandHandler('draw', self.manual_draw))
         self.application.add_handler(CommandHandler('send_results', self.send_results))
+        self.application.add_handler(CommandHandler('clear_all', self.clear_all))
+        self.application.add_handler(CommandHandler('delete_profile', self.delete_my_profile))
 
         # Обработчик для кнопки отмены в разговоре
 
