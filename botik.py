@@ -313,32 +313,22 @@ class SecretSantaBot:
     def setup_handlers(self):
         """Настройка всех обработчиков команд."""
         # Обработчик регистрации
+
         conv_handler = ConversationHandler(
-            entry_points=[CommandHandler('start', self.start)],
+            entry_points=[CommandHandler('start', self.start),
+                          CallbackQueryHandler(self.edit_field, pattern="^edit_")],
             states={
                 NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.get_name)],
                 COURSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.get_course)],
                 GROUP: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.get_group)],
                 WISHES: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.get_wishes)],
-            },
-            fallbacks=[CommandHandler('cancel', self.cancel)],
-        )
-
-        conv_edit = ConversationHandler(
-            entry_points=[
-                CallbackQueryHandler(self.edit_field, pattern="^edit_")
-            ],
-            states={
                 EDIT_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.save_edit)],
                 EDIT_COURSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.save_edit)],
                 EDIT_GROUP: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.save_edit)],
                 EDIT_WISHES: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.save_edit)],
             },
-            fallbacks=[CommandHandler("cancel", self.cancel)],
+            fallbacks=[CommandHandler("cancel", self.cancel)]
         )
-
-        self.application.add_handler(conv_edit)
-
         self.application.add_handler(conv_handler)
         self.application.add_handler(CallbackQueryHandler(self.view_data, pattern='^view_data$'))
         self.application.add_handler(CallbackQueryHandler(self.edit_menu, pattern='^change_data$'))
@@ -372,10 +362,7 @@ class SecretSantaBot:
 
         await self.application.initialize()
         await self.application.start()
-        await self.application.updater.start_polling()
-
-        # ждем пока бот работает
-        await asyncio.Event().wait()
+        await self.application.run_polling()
 
     async def edit_field(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         query = update.callback_query
