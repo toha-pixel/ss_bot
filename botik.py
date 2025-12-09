@@ -35,7 +35,7 @@ DATA_FILE = "users_data.json"
 ASSIGNMENTS_FILE = "assignments.json"
 
 # Дата жеребьёвки (год, месяц, день)
-DRAW_DATE = date(2025, 12, 25)  # Измените на нужную дату
+DRAW_DATE = date(2026, 12, 25)  # Измените на нужную дату
 
 
 class SecretSantaBot:
@@ -465,4 +465,5 @@ def main():
     bot.application.run_polling()
 
 if __name__ == '__main__':
+
     main()
